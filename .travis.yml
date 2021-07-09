@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install: 
+  - docker build -t conorf/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run -e CI=true conorf/react-test npm test
+
+after_success:
+  - docker build -t conorf/multi-client ./client
+  - docker build -t conorf/multi-nginx ./nginx
+  - docker build -t conorf/multi-server ./server
+  - docker build -t conorf/multi-worker ./worker
+  # take images and push to docker hub
+  - echo "$DOCKER_PASSSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push conorf/multi-client
+  - docker push conorf/multi-nginx
+  - docker push conorf/multi-server
+  - docker push conorf/multi-worker
